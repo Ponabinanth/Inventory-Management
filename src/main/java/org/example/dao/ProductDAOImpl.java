@@ -25,10 +25,12 @@ class ProductDAOImpl implements ProductDAO {
         return DriverManager.getConnection(DB_URL);
     }
 
+    // 🔑 UPDATED: Added category column
     private void createTable() {
         String sql = "CREATE TABLE IF NOT EXISTS products (\n"
                 + "    productId TEXT PRIMARY KEY,\n"
                 + "    productName TEXT NOT NULL,\n"
+                + "    category TEXT, \n" // 👈 New Column Added
                 + "    price REAL NOT NULL,\n"
                 + "    quantity INTEGER NOT NULL,\n"
                 + "    manufacturingDate TEXT,\n"
@@ -43,17 +45,20 @@ class ProductDAOImpl implements ProductDAO {
 
     @Override
     public boolean addProduct(Product product) {
-        String sql = "INSERT INTO products(productId, productName, price, quantity, manufacturingDate, supplier) VALUES(?,?,?,?,?,?)";
+        // 🔑 UPDATED: Added category to the INSERT statement
+        String sql = "INSERT INTO products(productId, productName, category, price, quantity, manufacturingDate, supplier) VALUES(?,?,?,?,?,?,?)";
         try (Connection conn = connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, product.getProductId());
             pstmt.setString(2, product.getProductName());
-            pstmt.setDouble(3, product.getPrice());
-            pstmt.setInt(4, product.getQuantity());
-            pstmt.setString(5, product.getManufacturingDate().toString());
-            pstmt.setString(6, product.getSupplier());
+            pstmt.setString(3, product.getCategory()); // 👈 Bind Category
+            pstmt.setDouble(4, product.getPrice());
+            pstmt.setInt(5, product.getQuantity());
+            pstmt.setString(6, product.getManufacturingDate().toString());
+            pstmt.setString(7, product.getSupplier());
             pstmt.executeUpdate();
             return true;
         } catch (SQLException e) {
+            // Note: This will fail if a product with the same ID already exists due to the PRIMARY KEY constraint.
             System.err.println("❌ Error adding product: " + e.getMessage());
             return false;
         }
@@ -66,9 +71,11 @@ class ProductDAOImpl implements ProductDAO {
             pstmt.setString(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
+                // 🔑 UPDATED: Added category to the Product constructor
                 Product product = new Product(
                         rs.getString("productId"),
                         rs.getString("productName"),
+                        rs.getString("category"), // 👈 Retrieve Category
                         rs.getDouble("price"),
                         rs.getInt("quantity"),
                         LocalDate.parse(rs.getString("manufacturingDate")),
@@ -88,9 +95,11 @@ class ProductDAOImpl implements ProductDAO {
         String sql = "SELECT * FROM products";
         try (Connection conn = connect(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
+                // 🔑 UPDATED: Added category to the Product constructor
                 Product product = new Product(
                         rs.getString("productId"),
                         rs.getString("productName"),
+                        rs.getString("category"), // 👈 Retrieve Category
                         rs.getDouble("price"),
                         rs.getInt("quantity"),
                         LocalDate.parse(rs.getString("manufacturingDate")),

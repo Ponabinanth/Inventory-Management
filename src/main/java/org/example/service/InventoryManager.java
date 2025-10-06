@@ -1,5 +1,4 @@
 package org.example.service;
-
 import org.example.model.Product;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -48,7 +47,9 @@ public class InventoryManager {
 
         return productMap.values().stream()
                 .filter(p -> p.getProductName().toLowerCase().contains(lowerCaseKeyword) ||
-                        p.getSupplier().toLowerCase().contains(lowerCaseKeyword))
+                        p.getSupplier().toLowerCase().contains(lowerCaseKeyword) ||
+                        // 🔑 ADDED: Search by Category
+                        p.getCategory().toLowerCase().contains(lowerCaseKeyword))
                 .collect(Collectors.toList());
     }
 
@@ -69,11 +70,13 @@ public class InventoryManager {
     public void saveToCsv() {
         String csvFilePath = "inventory_output.csv";
         try (FileWriter writer = new FileWriter(csvFilePath)) {
-            // Write the CSV header
-            writer.append("ID,Name,Price,Quantity,ManufacturingDate,Supplier\n");
+            // 🔑 UPDATED HEADER: Include Category
+            writer.append("ID,Name,Category,Price,Quantity,ManufacturingDate,Supplier\n");
             for (Product product : productMap.values()) {
                 writer.append(product.getProductId()).append(",");
                 writer.append(product.getProductName()).append(",");
+                // 🔑 ADDED: Include Category Data
+                writer.append(product.getCategory()).append(",");
                 writer.append(String.valueOf(product.getPrice())).append(",");
                 writer.append(String.valueOf(product.getQuantity())).append(",");
                 writer.append(product.getManufacturingDate().toString()).append(",");
@@ -103,4 +106,3 @@ public class InventoryManager {
                 .sum();
     }
 }
-

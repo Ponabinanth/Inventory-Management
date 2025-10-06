@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Inventory Manager</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f8fa; /* Lighter, more premium background */
+        }
+        /* Custom scrollbar for table container */
+        .scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #a5b4fc; /* Light indigo */
+            border-radius: 10px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        /* Modal Backdrop effect */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.6); /* Slate background with transparency */
+            backdrop-filter: blur(4px);
+        }
+        /* Custom gradient for primary button */
+        .btn-primary {
+            background-image: linear-gradient(to right, #4f46e5, #8b5cf6); /* Indigo to Violet */
+        }
+        .btn-primary:hover {
+            background-image: linear-gradient(to right, #6366f1, #a78bfa);
+        }
+        /* Style for striped table rows */
+        .striped-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+    </style>
+    <!-- Import Firebase Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Global Variables (Mandatory Canvas Globals) ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let userId = '';
+        let products = [];
+
+        // Collection path for public/shared inventory data
+        const INVENTORY_PATH = `artifacts/${appId}/public/data/inventory_products`;
+
+        // --- Utility Functions ---
+
+        /**
+         * Safely parse input value for numbers.
+         * @param {string} value
+         * @returns {number | null}
+         */
+        function parseNumericInput(value) {
+            const num = parseFloat(value);
+            return isNaN(num) ? null : num;
+        }
+
+        /**
+         * Shows a message box instead of alert()
+         * @param {string} message
+         * @param {string} type
+         */
+        function showMessage(message, type = 'success') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+
+            // Base classes for the message box
+            let baseClasses = 'p-3 rounded-xl shadow-2xl text-white text-sm fixed top-5 right-5 z-50 transition-all duration-300 transform translate-x-10 opacity-0';
+
+            if (type === 'success') {
+                messageBox.className = baseClasses + ' bg-green-500';
+            } else if (type === 'error') {
+                messageBox.className = baseClasses + ' bg-red-600';
+            } else {
+                messageBox.className = baseClasses + ' bg-blue-500';
+            }
+
+            // Animate in
+            setTimeout(() => {
+                messageBox.classList.add('translate-x-0', 'opacity-100');
+            }, 10);
+
+            // Animate out
+            setTimeout(() => {
+                messageBox.classList.remove('translate-x-0', 'opacity-100');
+                messageBox.classList.add('translate-x-10', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- Firebase Initialization and Real-time Listener ---
+
+        async function initFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is empty. Cannot initialize.");
+                    showMessage("Configuration Error: Firebase settings are missing.", 'error');
+                    return;
+                }
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // 1. Authenticate
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                userId = auth.currentUser.uid;
+                console.log(`✅ Firebase initialized. User ID: ${userId}`);
+
+                // 2. Setup Real-time Listener
+                setupFirestoreListener();
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessage("Database connection failed. Check console for details.", 'error');
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (!db) return;
+
+            const q = query(collection(db, INVENTORY_PATH));
+
+            onSnapshot(q, (snapshot) => {
+                products = snapshot.docs.map(doc => ({
+                    id: doc.id, // Firestore document ID
+                    ...doc.data()
+                }));
+                console.log(`Products updated: ${products.length} items.`);
+                renderProducts(products);
+            }, (error) => {
+                console.error("Firestore snapshot error:", error);
+                showMessage("Error fetching inventory data.", 'error');
+            });
+        }
+
+        // --- Rendering Functions ---
+
+        /**
+         * Calculates total value and renders the list of products and summary stats.
+         * @param {Array<Object>} productList
+         */
+        function renderProducts(productList) {
+            const tableBody = document.getElementById('inventoryTableBody');
+            const totalValueElement = document.getElementById('totalValue');
+            const totalItemsElement = document.getElementById('totalItems');
+            tableBody.innerHTML = '';
+
+            let totalValue = 0;
+
+            if (productList.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400 italic">No products found. Use the "Add Product" button to begin inventory management.</td></tr>';
+                totalValueElement.textContent = '$0.00';
+                totalItemsElement.textContent = '0';
+                return;
+            }
+
+            productList.forEach(p => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-indigo-50/50 transition duration-150';
+
+                // Calculate total value for stats
+                totalValue += p.price * p.quantity;
+
+                // Highlight quantity if low (simple threshold for visual flair)
+                const quantityClass = p.quantity < 5 ? 'font-bold text-red-600' : 'text-gray-700';
+
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-gray-600 font-mono text-xs">${p.productId}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${p.productName}</td>
+                    <td class="px-4 py-3 text-gray-600">${p.category}</td>
+                    <td class="px-4 py-3 text-right font-medium text-green-700">$${p.price.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-right ${quantityClass}">${p.quantity}</td>
+                    <td class="px-4 py-3 text-gray-600">${p.supplier}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">${p.manufacturingDate}</td>
+                    <td class="px-4 py-3 space-x-2">
+                        <button onclick="window.editProduct('${p.id}')" title="Edit" class="text-blue-600 hover:text-blue-800 transition duration-150 p-2 rounded-full hover:bg-blue-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        </button>
+                        <button onclick="window.showDeleteConfirm('${p.id}', '${p.productName}')" title="Delete" class="text-red-600 hover:text-red-800 transition duration-150 p-2 rounded-full hover:bg-red-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Update stats panel
+            totalValueElement.textContent = `$${totalValue.toFixed(2)}`;
+            totalItemsElement.textContent = productList.length.toString();
+        }
+
+        // --- CRUD Operations ---
+
+        window.showAddModal = function() {
+            document.getElementById('productForm').reset();
+            document.getElementById('formTitle').textContent = 'Add New Product';
+            document.getElementById('productIdInput').disabled = false;
+            document.getElementById('productDocId').value = '';
+            document.getElementById('inventoryModal').classList.remove('hidden');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('inventoryModal').classList.add('hidden');
+        }
+
+        // --- Delete Confirmation Modal Logic (New) ---
+
+        window.showDeleteConfirm = function(docId, productName) {
+            document.getElementById('deleteProductName').textContent = productName;
+            document.getElementById('executeDeleteButton').onclick = () => window.executeDelete(docId, productName);
+            document.getElementById('deleteConfirmationModal').classList.remove('hidden');
+        }
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteConfirmationModal').classList.add('hidden');
+        }
+
+        window.executeDelete = async function(docId, productName) {
+            window.closeDeleteModal(); // Close modal immediately
+            try {
+                await deleteDoc(doc(db, INVENTORY_PATH, docId));
+                showMessage(`Product "${productName}" deleted successfully.`);
+            } catch (e) {
+                console.error("Error deleting product:", e);
+                showMessage(`Error deleting product: ${e.message}`, 'error');
+            }
+        }
+
+        // --- Main Form Submission ---
+
+        window.handleFormSubmit = async function(event) {
+            event.preventDefault();
+
+            const docId = document.getElementById('productDocId').value;
+            const productId = document.getElementById('productIdInput').value.trim();
+            const productName = document.getElementById('productNameInput').value.trim();
+            const category = document.getElementById('categoryInput').value.trim();
+            const price = parseNumericInput(document.getElementById('priceInput').value);
+            const quantity = parseNumericInput(document.getElementById('quantityInput').value);
+            const manufacturingDate = document.getElementById('manufacturingDateInput').value.trim();
+            const supplier = document.getElementById('supplierInput').value.trim();
+
+            if (!productId || !productName || !category || price === null || quantity === null || !manufacturingDate || !supplier) {
+                showMessage("Please fill out all required fields.", 'error');
+                return;
+            }
+            if (price <= 0 || quantity < 0) {
+                showMessage("Price must be greater than zero and Quantity non-negative.", 'error');
+                return;
+            }
+
+            const productData = {
+                productId: productId,
+                productName: productName,
+                category: category,
+                price: price,
+                quantity: Math.round(quantity), // Ensure integer quantity
+                manufacturingDate: manufacturingDate,
+                supplier: supplier,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                if (docId) {
+                    // Update existing product
+                    await updateDoc(doc(db, INVENTORY_PATH, docId), productData);
+                    showMessage(`Product "${productName}" updated successfully!`);
+                } else {
+                    // Add new product
+                    await addDoc(collection(db, INVENTORY_PATH), productData);
+                    showMessage(`Product "${productName}" added successfully!`);
+                }
+                closeModal();
+            } catch (e) {
+                console.error("Error saving product:", e);
+                showMessage(`Error saving product: ${e.message}`, 'error');
+            }
+        }
+
+        window.editProduct = function(docId) {
+            const product = products.find(p => p.id === docId);
+            if (!product) {
+                showMessage("Product data not found locally.", 'error');
+                return;
+            }
+
+            document.getElementById('productDocId').value = docId;
+            document.getElementById('formTitle').textContent = 'Edit Product';
+
+            // Disable editing the unique Product ID field
+            document.getElementById('productIdInput').value = product.productId;
+            document.getElementById('productIdInput').disabled = true;
+
+            document.getElementById('productNameInput').value = product.productName;
+            document.getElementById('categoryInput').value = product.category;
+            document.getElementById('priceInput').value = product.price;
+            document.getElementById('quantityInput').value = product.quantity;
+            document.getElementById('manufacturingDateInput').value = product.manufacturingDate;
+            document.getElementById('supplierInput').value = product.supplier;
+
+            document.getElementById('inventoryModal').classList.remove('hidden');
+        }
+
+        // --- Filtering Logic ---
+
+        window.applyFilter = function() {
+            const searchKeyword = document.getElementById('searchKeyword').value.toLowerCase();
+            const filteredProducts = products.filter(p =>
+                p.productName.toLowerCase().includes(searchKeyword) ||
+                p.productId.toLowerCase().includes(searchKeyword) ||
+                p.supplier.toLowerCase().includes(searchKeyword) ||
+                p.category.toLowerCase().includes(searchKeyword)
+            );
+            renderProducts(filteredProducts);
+        }
+
+        // --- Initialization ---
+        window.onload = initFirebase;
+    </script>
+</head>
+<body class="min-h-screen">
+
+<!-- Message Box -->
+<div id="messageBox" class="opacity-0 fixed top-5 right-5 z-50 transition-all duration-300 transform translate-x-10"></div>
+
+<div class="container mx-auto p-4 sm:p-6 lg:p-10">
+
+    <!-- Header & Stats -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Inventory Dashboard</h1>
+        <p class="text-gray-500">Real-time management for your product stock. <span class="font-semibold text-xs text-indigo-500">User ID: <span id="displayUserId">...</span></span></p>
+
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+            <!-- Unique Products Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transition duration-300 hover:shadow-xl">
+                <p class="text-sm font-medium text-gray-500 uppercase">Unique Products</p>
+                <p id="totalItems" class="text-4xl font-extrabold text-indigo-600 mt-2">0</p>
+            </div>
+
+            <!-- Total Value Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transition duration-300 hover:shadow-xl">
+                <p class="text-sm font-medium text-gray-500 uppercase">Total Inventory Value</p>
+                <p id="totalValue" class="text-4xl font-extrabold text-green-600 mt-2">$0.00</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Controls (Search and Add) -->
+    <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+
+            <!-- Search Input -->
+            <div class="relative flex-grow w-full sm:w-auto">
+                <input
+                        type="text"
+                        id="searchKeyword"
+                        placeholder="Search by ID, Name, Category, or Supplier..."
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 text-gray-700 placeholder-gray-400"
+                        onkeyup="window.applyFilter()"
+                >
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Add Button -->
+            <button
+                    onclick="window.showAddModal()"
+                    class="w-full sm:w-48 text-white py-3 px-6 rounded-xl font-bold shadow-lg shadow-indigo-500/50 btn-primary hover:shadow-xl hover:shadow-indigo-600/50 transition duration-200 flex items-center justify-center space-x-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7H5"/></svg>
+                <span>Add Product</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="scroll-container overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 striped-table">
+                <thead class="bg-gray-50 border-b-2 border-indigo-200">
+                <tr>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/12">ID</th>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-2/12">Name</th>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/12">Category</th>
+                    <th class="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/12">Price</th>
+                    <th class="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/12">Qty</th>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-2/12">Supplier</th>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-2/12">Manuf. Date</th>
+                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/12">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="inventoryTableBody" class="bg-white divide-y divide-gray-100">
+                <!-- Product rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal for Add/Edit Product -->
+<div id="inventoryModal" class="fixed inset-0 modal-backdrop hidden z-40 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl transform transition-all duration-300 scale-100">
+        <h2 id="formTitle" class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Add New Product</h2>
+
+        <form id="productForm" onsubmit="window.handleFormSubmit(event)">
+            <input type="hidden" id="productDocId" value="">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <!-- Product ID -->
+                <div>
+                    <label for="productIdInput" class="block text-sm font-medium text-gray-700">Product ID</label>
+                    <input type="text" id="productIdInput" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+                <!-- Product Name -->
+                <div>
+                    <label for="productNameInput" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="productNameInput" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-4">
+                <label for="categoryInput" class="block text-sm font-medium text-gray-700">Category</label>
+                <input type="text" id="categoryInput" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <!-- Price -->
+                <div>
+                    <label for="priceInput" class="block text-sm font-medium text-gray-700">Price ($)</label>
+                    <input type="number" step="0.01" id="priceInput" required min="0.01" class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+                <!-- Quantity -->
+                <div>
+                    <label for="quantityInput" class="block text-sm font-medium text-gray-700">Quantity</label>
+                    <input type="number" id="quantityInput" required min="0" step="1" class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <!-- Manufacturing Date -->
+                <div>
+                    <label for="manufacturingDateInput" class="block text-sm font-medium text-gray-700">Manuf. Date</label>
+                    <input type="date" id="manufacturingDateInput" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+                <!-- Supplier -->
+                <div>
+                    <label for="supplierInput" class="block text-sm font-medium text-gray-700">Supplier</label>
+                    <input type="text" id="supplierInput" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4 border-t">
+                <button type="button" onclick="window.closeModal()" class="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition duration-150 font-semibold">Cancel</button>
+                <button type="submit" class="px-6 py-3 text-white rounded-xl font-bold shadow-md btn-primary hover:shadow-lg transition duration-200">Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmationModal" class="fixed inset-0 modal-backdrop hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl transform transition-all duration-300 scale-100 border-t-4 border-red-500">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.86 18.2a2 2 0 0 0 1.74 3H20.4a2 2 0 0 0 1.74-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Confirm Deletion
+        </h3>
+        <p class="text-gray-600 mb-6">
+            Are you sure you want to delete the product: <span id="deleteProductName" class="font-bold text-red-600"></span>? This action cannot be undone.
+        </p>
+
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="window.closeDeleteModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150 font-medium">Cancel</button>
+            <button id="executeDeleteButton" type="button" class="px-4 py-2 text-white bg-red-600 rounded-lg font-semibold shadow-md hover:bg-red-700 transition duration-150">Delete Permanently</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
