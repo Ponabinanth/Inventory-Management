@@ -1,42 +1,49 @@
 package org.example;
 
 import org.example.model.Product;
-import java.util.Collection;
+import java.util.List;
 
 public class TableFormatter {
-    public static void printProductTable(Collection<Product> products) {
-        if (products == null || products.isEmpty()) {
-            System.out.println("Inventory is empty.");
+    public static void printProductTable(List<Product> products) {
+        if (products.isEmpty()) {
+            System.out.println("No products to display.");
             return;
         }
-        final int ID_WIDTH = 4;
-        final int NAME_WIDTH = 15;
-        final int CAT_WIDTH = 12;
-        final int PRICE_WIDTH = 10;
-        final int QTY_WIDTH = 10;
-        final int DATE_WIDTH = 15;
-        final int SUPP_WIDTH = 15;
-
-        int totalWidth = ID_WIDTH + NAME_WIDTH + CAT_WIDTH + PRICE_WIDTH + QTY_WIDTH + DATE_WIDTH + SUPP_WIDTH + (7 * 3) + 1;
-        String horizontalLine = "-".repeat(totalWidth);
-        String headerFormat = "| %-" + ID_WIDTH + "s | %-" + NAME_WIDTH + "s | %-" + CAT_WIDTH + "s | %" + PRICE_WIDTH + "s | %" + QTY_WIDTH + "s | %-" + DATE_WIDTH + "s | %-" + SUPP_WIDTH + "s |%n";
-        String rowFormat = "| %-" + ID_WIDTH + "s | %-" + NAME_WIDTH + "s | %-" + CAT_WIDTH + "s | %" + PRICE_WIDTH + ".2f | %" + QTY_WIDTH + "d | %-" + DATE_WIDTH + "s | %-" + SUPP_WIDTH + "s |%n";
-
-        System.out.println(horizontalLine);
-        System.out.printf(headerFormat, "ID", "Name", "Category", "Price", "Quantity", "Manuf. Date", "Supplier");
-        System.out.println(horizontalLine);
-
+        final int COL_ID = 10;
+        final int COL_NAME = 25;
+        final int COL_CATEGORY = 15;
+        final int COL_PRICE = 10;
+        final int COL_QTY = 8;
+        final int COL_DATE = 14;
+        final int COL_SUPPLIER = 20;
+        String separator = "+";
+        separator += "-".repeat(COL_ID + 2) + "+";
+        separator += "-".repeat(COL_NAME + 2) + "+";
+        separator += "-".repeat(COL_CATEGORY + 2) + "+";
+        separator += "-".repeat(COL_PRICE + 2) + "+";
+        separator += "-".repeat(COL_QTY + 2) + "+";
+        separator += "-".repeat(COL_DATE + 2) + "+";
+        separator += "-".repeat(COL_SUPPLIER + 2) + "+";
+        System.out.println(separator);
+        System.out.printf("| %-" + COL_ID + "s | %-" + COL_NAME + "s | %-" + COL_CATEGORY + "s | %-" + COL_PRICE + "s | %-" + COL_QTY + "s | %-" + COL_DATE + "s | %-" + COL_SUPPLIER + "s |%n",
+                "ID", "NAME", "CATEGORY", "PRICE ($)", "QTY", "MANU. DATE", "SUPPLIER");
+        System.out.println(separator);
         for (Product p : products) {
-            System.out.printf(rowFormat,
-                    p.getProductId(),
-                    p.getProductName(),
-                    p.getCategory(),
+            System.out.printf("| %-" + COL_ID + "s | %-" + COL_NAME + "s | %-" + COL_CATEGORY + "s | %-" + COL_PRICE + ".2f | %" + COL_QTY + "d | %-" + COL_DATE + "s | %-" + COL_SUPPLIER + "s |%n",
+                    p.getId(),
+                    truncate(p.getName(), COL_NAME),
+                    truncate(p.getCategory(), COL_CATEGORY),
                     p.getPrice(),
                     p.getQuantity(),
-                    p.getManufacturingDate().toString(),
-                    p.getSupplier()
-            );
+                    p.getLastUpdated().toString(),
+                    truncate(p.getSupplier(), COL_SUPPLIER));
         }
-        System.out.println(horizontalLine);
+        System.out.println(separator);
+    }
+    private static String truncate(String s, int length) {
+        if (s.length() > length) {
+            return s.substring(0, length - 1) + "…";
+        }
+        return s;
     }
 }

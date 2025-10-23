@@ -1,0 +1,17 @@
+CREATE DATABASE inventorDB;
+USE inventorDB;
+CREATE TABLE products
+(
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity >= 0),
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0)
+);
+
+-- Data Insertion (The Input Data)
+INSERT INTO products VALUES (1, 'Laptop', 'Electronics', 50, 100000.00);
+INSERT INTO products VALUES (2, 'Chair', 'Furniture', 76, 2500.00);
+INSERT INTO products VALUES (3, 'Pen', 'Stationery', 100, 80.00);
+INSERT INTO products VALUES (4, 'Phone', 'Electronics', 65, 30000.00);
+INSERT INTO products VALUES (5, 'Table', 'Furniture', 27, 15000.00);

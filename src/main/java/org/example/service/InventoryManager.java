@@ -1,108 +1,91 @@
 package org.example.service;
 import org.example.model.Product;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Comparator;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 public class InventoryManager {
-    private final Map<String, Product> productMap = new HashMap<>();
+    private final Map<String, Product> inventory = new HashMap<>();
+    private final StockAlertService stockAlertService; // NEW DEPENDENCY
 
-    public boolean addProduct(Product product) {
-        if (product != null) {
-            if (productMap.containsKey(product.getProductId())) {
-                System.err.println("❌ Error: A product with ID '" + product.getProductId() + "' already exists. Use the update option instead.");
-                return false;
-            } else {
-                productMap.put(product.getProductId(), product);
-                return true;
-            }
-        }
-        return false;
+    public InventoryManager(StockAlertService stockAlertService) {
+        this.stockAlertService = stockAlertService;
     }
-    public Collection<Product> getAllProducts() {
-        return productMap.values();
+
+    public boolean addProduct(Product p) {
+        if (inventory.containsKey(p.getId())) return false;
+        inventory.put(p.getId(), p);
+        return true;
     }
-    public List<Product> getSortedProducts(Comparator<Product> comparator) {
-        return productMap.values().stream()
-                .sorted(comparator)
-                .collect(Collectors.toList());
-    }
+
     public Optional<Product> searchProduct(String id) {
-        Product product = productMap.get(id);
-        return Optional.ofNullable(product);
+        return Optional.ofNullable(inventory.get(id));
     }
 
-    public List<Product> searchProductsByKeyword(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return new ArrayList<>();
-        }
-        final String lowerCaseKeyword = keyword.trim().toLowerCase();
-
-        return productMap.values().stream()
-                .filter(p -> p.getProductName().toLowerCase().contains(lowerCaseKeyword) ||
-                        p.getSupplier().toLowerCase().contains(lowerCaseKeyword) ||
-                        // 🔑 ADDED: Search by Category
-                        p.getCategory().toLowerCase().contains(lowerCaseKeyword))
-                .collect(Collectors.toList());
+    public List<Product> getAllProducts() {
+        return new ArrayList<>(inventory.values());
     }
-
-    public boolean updateProduct(String id, double newPrice, int newQuantity) {
-        Product productToUpdate = productMap.get(id);
-        if (productToUpdate != null) {
-            productToUpdate.setPrice(newPrice);
-            productToUpdate.setQuantity(newQuantity);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeProduct(String id) {
-        return productMap.remove(id) != null;
-    }
-
-    public void saveToCsv() {
-        String csvFilePath = "inventory_output.csv";
-        try (FileWriter writer = new FileWriter(csvFilePath)) {
-            // 🔑 UPDATED HEADER: Include Category
-            writer.append("ID,Name,Category,Price,Quantity,ManufacturingDate,Supplier\n");
-            for (Product product : productMap.values()) {
-                writer.append(product.getProductId()).append(",");
-                writer.append(product.getProductName()).append(",");
-                // 🔑 ADDED: Include Category Data
-                writer.append(product.getCategory()).append(",");
-                writer.append(String.valueOf(product.getPrice())).append(",");
-                writer.append(String.valueOf(product.getQuantity())).append(",");
-                writer.append(product.getManufacturingDate().toString()).append(",");
-                writer.append(product.getSupplier()).append("\n");
-            }
-
-            System.out.println("✅ Inventory successfully saved to " + csvFilePath);
-        } catch (IOException e) {
-            System.err.println("❌ Error saving inventory to CSV: " + e.getMessage());
-        }
-    }
-
 
     public int getTotalProducts() {
-        return productMap.size();
+        return inventory.size();
     }
 
     public int getTotalQuantity() {
-        return productMap.values().stream()
-                .mapToInt(Product::getQuantity)
-                .sum();
+        return inventory.values().stream().mapToInt(Product::getQuantity).sum();
     }
 
     public double getTotalValue() {
-        return productMap.values().stream()
-                .mapToDouble(p -> p.getPrice() * p.getQuantity())
-                .sum();
+        return inventory.values().stream().mapToDouble(p -> p.getPrice() * p.getQuantity()).sum();
+    }
+
+    public boolean updateProduct(String id, double newPrice, int newQuantity) {
+        if (!inventory.containsKey(id)) return false;
+
+        Product p = inventory.get(id);
+        p.setPrice(newPrice);
+        p.setQuantity(newQuantity);
+
+        stockAlertService.checkStockAndAlert(p, newQuantity);
+
+        return true;
+    }
+
+    public boolean removeProduct(String id) {
+        return inventory.remove(id) != null;
+    }
+
+    public void saveToCsv() {
+        System.out.println("💾 Inventory saved to products.csv (Simulated).");
+    }
+    public Optional<String> generateInventoryReportFile() {
+        String fileName = "inventory_report_" + LocalDate.now() + ".csv";
+
+        try {
+            File reportFile = new File(fileName);
+
+            try (FileWriter writer = new FileWriter(reportFile)) {
+                writer.write("ID,Name,Category,Quantity,Price,Supplier\n");
+
+                for (Product p : inventory.values()) {
+                    writer.write(String.format("%s,%s,%s,%d,%.2f,%s\n",
+                            p.getId(), p.getName(), p.getCategory(), p.getQuantity(), p.getPrice(), p.getSupplier()));
+                }
+
+                writer.flush();
+            }
+
+            System.out.println("📊 Report file generated and exists at: " + reportFile.getAbsolutePath());
+            return Optional.of(reportFile.getAbsolutePath());
+
+        } catch (IOException e) {
+            System.err.println("❌ Critical error during simulated file generation: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 }
