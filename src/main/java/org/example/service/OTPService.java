@@ -25,7 +25,6 @@ public class OTPService {
         String content = "Your one-time password (OTP) is: " + otp +
                 "\nThis code is valid for 5 minutes.";
 
-        // Uses the plain text overload (no file path argument)
         emailUtil.sendReport(recipientEmail, subject, content);
     }
 

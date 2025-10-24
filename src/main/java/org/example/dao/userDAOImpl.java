@@ -8,7 +8,7 @@ import java.util.Optional;
 public class userDAOImpl {
     private User currentUser = null;
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
-        String id = rs.getString("user_id");
+        String id = rs.getString("ID"); // <--- Check this name!
         String name = rs.getString("full_name");
         String email = rs.getString("email");
         String pass = rs.getString("password");
@@ -18,7 +18,7 @@ public class userDAOImpl {
     }
 
     public boolean addUser(User user) {
-        String sql = "INSERT INTO users (user_id, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (ID, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -32,14 +32,13 @@ public class userDAOImpl {
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            // Log error, especially for duplicate key/constraint violation
             System.err.println("Database error during addUser: " + e.getMessage());
             return false;
         }
     }
 
     public User getUserByEmail(String email) {
-        String sql = "SELECT user_id, full_name, email, password, role FROM users WHERE email = ?";
+        String sql = "SELECT ID, full_name, email, password, role FROM users WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -55,8 +54,9 @@ public class userDAOImpl {
         }
         return null;
     }
+
     public Optional<User> getUserById(String userId) {
-        String sql = "SELECT user_id, full_name, email, password, role FROM users WHERE user_id = ?";
+        String sql = "SELECT ID, full_name, email, password, role FROM users WHERE ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -90,8 +90,9 @@ public class userDAOImpl {
     public void logout() {
         this.currentUser = null;
     }
+
     public boolean updateUser(User user) {
-        String sql = "UPDATE users SET full_name = ?, email = ?, password = ?, role = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET full_name = ?, email = ?, password = ?, role = ? WHERE ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -108,8 +109,9 @@ public class userDAOImpl {
             return false;
         }
     }
+
     public boolean deleteUser(String userId) {
-        String sql = "DELETE FROM users WHERE user_id = ?";
+        String sql = "DELETE FROM users WHERE ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
