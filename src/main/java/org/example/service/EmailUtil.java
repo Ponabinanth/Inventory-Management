@@ -97,4 +97,7 @@ public class EmailUtil {
             e.printStackTrace();
         }
     }
+
+    public void sendVerificationEmail(String email, String token) {
+    }
 }

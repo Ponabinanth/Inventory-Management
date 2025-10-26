@@ -1,4 +1,5 @@
 package org.example;
+
 import org.example.dao.userDAOImpl;
 import org.example.model.Product;
 import org.example.model.User;
@@ -11,14 +12,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class Main {
 
     private static final EmailUtil emailUtil = new EmailUtil();
-
     private static final OTPService otpService = new OTPService(emailUtil);
     private static final StockAlertService stockAlertService = new StockAlertService(emailUtil);
-
     private static final InventoryManager manager = new InventoryManager(stockAlertService);
 
     private static final userDAOImpl userAuthDAO = new userDAOImpl();
@@ -40,13 +40,9 @@ public class Main {
 
     public static void main(String[] args) {
         displayWelcomeScreen();
-
-        if (login()) {
-            managerMenu();
-        } else {
-            System.out.println("\n👋 Thank you for using the system. Goodbye!");
-        }
+        mainMenu();
     }
+
     private static void displayWelcomeScreen() {
         String LINE_WIDTH = "═════════════════════════════════════════════════";
 
@@ -54,6 +50,39 @@ public class Main {
         System.out.println("         📦 INVENTORY MANAGEMENT SYSTEM 📈       ");
         System.out.println("     Welcome to your central stock control hub!      ");
         System.out.println("╚" + LINE_WIDTH +  "╝");
+    }
+    private static void mainMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n--- Main Menu ---");
+            System.out.println("1. 🔑 Login");
+            System.out.println("2. 📝 Register");
+            System.out.println("3. 📧 Verify Email (Simulated)");
+            System.out.println("4. 🚪 Exit");
+            System.out.print("🎯 Enter choice: ");
+
+            String choice = sc.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    if (login()) {
+                        managerMenu();
+                    }
+                    break;
+                case "2":
+                    register();
+                    break;
+                case "3":
+                    verifyEmail();
+                    break;
+                case "4":
+                    exit();
+                    running = false;
+                    break;
+                default:
+                    System.err.println("❌ Invalid choice. Please try again.");
+            }
+        }
     }
 
     private static boolean login() {
@@ -65,31 +94,122 @@ public class Main {
 
         User user = userAuthDAO.login(email, password);
 
-        if (user != null) {
-            System.out.println("\n✅ Login successful. Welcome, " + user.getFullName() + " (" + user.getRole() + ")!");
-
-            otpService.generateAndSendOTP(user.getUserId(), user.getEmail());
-
-            System.out.print("📬 Enter the 6-digit OTP received: ");
-            String enteredOTP = sc.nextLine();
-
-            if (otpService.verifyOTP(user.getUserId(), enteredOTP)) {
-                return true;
-            } else {
-                userAuthDAO.logout();
-                return false;
-            }
-        } else {
+        if (user == null) {
             System.err.println("❌ Invalid credentials. Access denied.");
+            return false;
+        }
+
+        System.out.println("\n✅ Login successful. Welcome, " + user.getFullName() + " (" + user.getRole() + ")!");
+
+        if (user.getRole() != UserRole.MANAGER) {
+            System.err.println("🚫 Access denied. Only Managers can log in to the main system.");
+            userAuthDAO.logout();
+            return false;
+        }
+
+        if (user.getRole() != UserRole.MANAGER && !user.isVerified()) {
+            handleUnverifiedUser(user);
+            userAuthDAO.logout();
+            return false;
+        }
+        return performOtpCheck(user);
+    }
+
+    private static boolean performOtpCheck(User user) {
+        otpService.generateAndSendOTP(user.getUserId(), user.getEmail());
+        System.out.print("📬 Enter the 6-digit OTP received: ");
+        String enteredOTP = sc.nextLine();
+
+        if (otpService.verifyOTP(user.getUserId(), enteredOTP)) {
+            System.out.println("✅ OTP verified successfully. Entering system...");
+            return true;
+        } else {
+            System.err.println("❌ OTP verification failed. Access denied.");
+            userAuthDAO.logout();
             return false;
         }
     }
 
+    private static void handleUnverifiedUser(User user) {
+        System.err.println("\n⚠️ Access Denied: Your email address is unverified.");
+        System.err.println("   Please check your email (" + user.getEmail() + ") for a verification link.");
+
+        System.err.print("   Would you like to resend the verification link? (Y/N): ");
+        System.err.flush();
+
+        String choice = sc.nextLine().trim().toUpperCase();
+
+        if (choice.equals("Y")) {
+            System.err.println("   📧 Verification link resent. Please check your inbox.");
+        }
+
+        System.err.println("   You must verify your email before proceeding.");
+    }
+
+    private static void register() {
+        System.out.println("\n--- User Registration ---");
+        System.out.print("👤 Enter Full Name: ");
+        String name = sc.nextLine();
+        System.out.print("📧 Enter Email: ");
+        String email = sc.nextLine();
+        System.out.print("🔒 Choose Password: ");
+        String password = sc.nextLine();
+
+        User newUser = new User(
+                UUID.randomUUID().toString(),
+                name,
+                email,
+                password,
+                UserRole.VIEWER // Default role
+        );
+
+        if (userAuthDAO.addUser(newUser)) {
+            String token = UUID.randomUUID().toString();
+            emailUtil.sendVerificationEmail(email, token);
+
+            System.out.println("\n✅ Registration successful for " + name + ".");
+            System.out.println("   A verification link has been sent to " + email + ".");
+            System.out.println("   Please verify your email to enable full access.");
+        } else {
+            System.err.println("❌ Registration failed. Email may already be in use.");
+        }
+    }
+
+    private static void verifyEmail() {
+        System.out.println("\n--- Email Verification (Simulated) ---");
+        System.out.print("📧 Enter Email to Verify: ");
+        String email = sc.nextLine();
+        System.out.print("🔑 Enter Verification Token (Simulated: enter 'VERIFY'): ");
+        String token = sc.nextLine();
+
+        Optional<User> user = userAuthDAO.getUserByEmail(email);
+
+        if (user.isPresent() && token.equalsIgnoreCase("VERIFY")) {
+
+            user.get().setVerified(true);
+
+            if (userAuthDAO.updateUser(user.orElse(null))) {
+                System.out.println("\n✅ Email " + email + " verified successfully! You can now log in.");
+            } else {
+                System.err.println("❌ Could not update user status in the DAO.");
+            }
+        } else {
+            System.err.println("❌ Verification failed. Invalid email or token.");
+        }
+    }
+
+    private static void exit() {
+        System.out.println("\n👋 Thank you for using the system. Goodbye!");
+        userAuthDAO.logout();
+        sc.close();
+    }
     private static void managerMenu() {
-        if (!userAuthDAO.isAuthorized(UserRole.MANAGER)) {
-            System.err.println("🚫 Access denied. Only Managers can access the main menu.");
+        if (userAuthDAO.getCurrentUser() == null || userAuthDAO.getCurrentUser().getRole() != UserRole.MANAGER) {
+            System.err.println("🚫 Access denied. Must be logged in as a Manager.");
             return;
         }
+
+        System.out.println("\n🚀 Entering Manager System...");
 
         while (true) {
             displayMenu();
@@ -252,7 +372,6 @@ public class Main {
 
             if (manager.updateProduct(id, newPrice, newQuantity)) {
                 System.out.println("\n✅ Product details updated successfully.");
-                // Stock alert is now triggered inside manager.updateProduct if quantity is low
             } else {
                 System.err.println("❌ Failed to update product (ID not found).");
             }

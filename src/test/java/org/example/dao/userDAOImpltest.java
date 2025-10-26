@@ -1,15 +1,16 @@
 package org.example.dao;
+
 import org.example.model.User;
 import org.example.model.User.UserRole;
 import org.example.util.DBConnection;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserDAOImplTest {
 
@@ -27,7 +28,6 @@ class UserDAOImplTest {
     @BeforeEach
     public void setup() {
         cleanTable();
-        // Instantiate the concrete DAO implementation
         userDAO = new userDAOImpl();
     }
 
@@ -39,7 +39,7 @@ class UserDAOImplTest {
             System.out.println("✅ Users table cleaned successfully.");
         } catch (SQLException e) {
             System.err.println("❌ Setup/Cleanup Error: Could not clean users table. Check DBConnection settings.");
-            Assertions.fail("Database connection failed during setup/cleanup: " + e.getMessage());
+            fail("Database connection failed during setup/cleanup: " + e.getMessage());
         }
     }
 
@@ -74,7 +74,6 @@ class UserDAOImplTest {
 
         boolean result = userDAO.updateUser(nonExistentUser);
 
-        // The DAO returns false because no rows were affected/updated
         assertFalse(result, "Updating a user with a non-existent ID should return false.");
     }
 
@@ -85,4 +84,47 @@ class UserDAOImplTest {
         assertFalse(deleteResult, "Deleting a non-existent user should return false.");
     }
 
+    @Test
+    void addUser() {
+    }
+
+    @Test
+    void getUserById() {
+    }
+
+    @Test
+    void getUserByEmail() {
+    }
+
+    @Test
+    void getAllUsers() {
+    }
+
+    @Test
+    void updateUser() {
+    }
+
+    @Test
+    void deleteUser() {
+    }
+
+    @Test
+    void login() {
+    }
+
+    @Test
+    void isAuthorized() {
+    }
+
+    @Test
+    void getCurrentUser() {
+    }
+
+    @Test
+    void logout() {
+    }
+
+    @Test
+    void updateVerificationToken() {
+    }
 }
