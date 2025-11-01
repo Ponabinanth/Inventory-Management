@@ -1,0 +1,617 @@
+Task Documentation 1
+________________________________________
+Task 1: JDK 17 and IntelliJ IDEA Setup
+Student Name(s): Ponabinanth.S
+Date Completed: 04.09.2025
+________________________________________
+1. Objective
+To successfully download, install, and set up JDK 17 and IntelliJ IDEA for Java development.
+________________________________________
+2. Steps Taken
+• Downloaded IntelliJ IDEA and installed JDK 17 from the official Oracle website.
+• Configured the IDE to recognize the installed JDK.
+• Tested the installation via command line.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+The java -version command displayed the correct JDK version, confirming successful installation.
+________________________________________
+Task Documentation 2
+________________________________________
+Task 2: GitHub Desktop and MySQL Setup
+Student Name(s): Ponabinanth.S
+Date Completed: 08.09.2025
+________________________________________
+1. Objective
+To install and configure GitHub Desktop and MySQL for version control and database management.
+________________________________________
+2. Steps Taken
+• Installed MySQL and GitHub Desktop applications.
+• Created a repository named Inventory and pushed code using Git commands.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Repository setup verified using git status and git push commands. Files were visible in the GitHub repository.
+________________________________________
+Task Documentation 3
+________________________________________
+Task 3: Product and Main Class Creation
+Student Name(s): Ponabinanth.S
+Date Completed: 09.09.2025
+________________________________________
+1. Objective
+To create a ” Product class and a Main class “ to display and manage inventory data.
+________________________________________
+2. Steps Taken
+• Developed two classes: Product and Main.
+• Designed the main screen to display operations and accept user input.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Running the Main class displayed the welcome message and enabled user operations for data input and storage.
+________________________________________
+Task Documentation 4
+________________________________________
+Task 4: Inventory Class and User Interface Creation
+Student Name(s): Ponabinanth.S
+Date Completed: 10.09.2025
+________________________________________
+1. Objective
+To create an Inventory class and design a user interface for product management.
+________________________________________
+2. Steps Taken
+• Added options like Add, Search, Update, Delete, List Products, and Exit.
+• Integrated these options into the main menu.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Running the Inventory class displayed a working interface and stored user actions in temporary memory.
+________________________________________
+Task Documentation 5
+________________________________________
+Task 5: Exception Handling Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 11.09.2025
+________________________________________
+1. Objective
+To implement exception handling and prevent application crashes.
+________________________________________
+2. Steps Taken
+• Used try-catch blocks to handle runtime and input-related exceptions.
+• Validated data fields to avoid duplicates or invalid entries.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Invalid inputs (e.g., wrong datatype or duplicate IDs) triggered custom error messages instead of crashing the program.
+________________________________________
+Task Documentation 6
+________________________________________
+Task 6: ProductDAO Creation and JDBC Connection
+Student Name(s): Ponabinanth.S
+Date Completed: 12.09.2025
+________________________________________
+1. Objective
+To create a ProductDAO class and implement JDBC for database connectivity.
+________________________________________
+2. Steps Taken
+• Created a database named inventoryDB.
+• Configured JDBC connection within Main.java to enable data persistence.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Upon running Main.java, product data was successfully stored in the inventoryDB database.
+________________________________________
+Task Documentation 7
+________________________________________
+Task 7: SQL Query Execution and Database Updates
+Student Name(s): Ponabinanth.S
+Date Completed: 15.09.2025
+________________________________________
+1. Objective
+To create and execute SQL queries for data manipulation within the database.
+________________________________________
+2. Steps Taken
+• Created a SQL file named inventory.sql and wrote queries for CRUD operations.
+• Executed SQL queries to modify data in inventoryDB.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Product data was updated correctly in inventoryDB upon executing the queries.
+________________________________________
+Task Documentation 8
+________________________________________
+Task 8: Custom Exception Creation
+Student Name(s): Ponabinanth.S
+Date Completed: 16.09.2025
+________________________________________
+1. Objective
+To create user-defined exceptions for better error management.
+________________________________________
+2. Steps Taken
+• Created a new package named exception.
+• Developed multiple custom exception classes to handle specific cases.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Custom exceptions were successfully invoked when invalid inputs were entered in Main.java.
+________________________________________
+Task Documentation 9
+________________________________________
+Task 9: CSV File Creation and IO Operations
+Student Name(s): Ponabinanth.S
+Date Completed: 17.09.2025
+________________________________________
+1. Objective
+To create a CSV file and perform Java IO operations for reading and writing data.
+________________________________________
+2. Steps Taken
+• Developed a CSV Helper class to handle file input/output.
+• Integrated the CSV file operations with the DAO and Main class.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Product data synchronized correctly between the database and CSV file.
+________________________________________
+Task Documentation 10
+________________________________________
+Task 10: Table-Style Output and JDBC Enhancement
+Student Name(s): Ponabinanth.S
+Date Completed: 19.09.2025
+________________________________________
+1. Objective
+To improve the user interface by displaying product data in a tabular format using JDBC.
+________________________________________
+2. Steps Taken
+• Used formatted print statements to create a table-like console output.
+• Enhanced JDBC connection and query execution understanding.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Running the Main class displayed clear and structured product data in table form.
+________________________________________
+Task Documentation 11
+________________________________________
+Task 11: DAO Pattern and Interface Creation
+Student Name(s): Ponabinanth.S
+Date Completed: 22.09.2025
+________________________________________
+1. Objective
+To implement DAO design pattern and create an interface for better code abstraction.
+________________________________________
+2. Steps Taken
+• Developed ProductDAO interface and corresponding implementation class.
+• Used prepared statements for secure query execution.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Prepared statements were reusable and ensured clean, modular code structure.
+________________________________________
+Task Documentation 12
+________________________________________
+Task 12: Advanced Search Functionality
+Student Name(s): Ponabinanth.S
+Date Completed: 23.09.2025
+________________________________________
+1. Objective
+To enhance search functionality for better product lookup efficiency.
+________________________________________
+2. Steps Taken
+• Added three search options:
+ - Search by ID
+ - Search by Name
+ - Get All Products
+• Optimized the UI to hide unnecessary details.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Search options functioned properly when the Main function was executed.
+________________________________________
+Task Documentation 13
+________________________________________
+Task 13: CRUD Expansion and Update/Delete Operations
+Student Name(s): Ponabinanth.S
+Date Completed: 24.09.2025
+________________________________________
+1. Objective
+To implement and expand CRUD operations, particularly update and delete functionalities.
+________________________________________
+2. Steps Taken
+• Added multiple update options including:
+ - Update ID
+ - Update Name
+ - Update Category
+ - Update Quantity
+ - Update All Fields
+• Implemented delete operations:
+ - Delete by ID
+ - Delete by Name
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Running the Main function confirmed all CRUD features worked as expected.
+________________________________________
+Task Documentation 14
+________________________________________
+Task 14: Exception Handling and User-Friendly Console
+Student Name(s): Ponabinanth.S
+Date Completed: 26.09.2025
+________________________________________
+1. Objective
+To create exception handling mechanisms to manage unexpected or invalid user inputs and make the console more user-friendly.
+________________________________________
+2. Steps Taken
+• Implemented custom exceptions to handle inappropriate inputs.
+• Enhanced the console interface to display meaningful error messages.
+• Validated data fields such as price to ensure only valid values are accepted.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When running the main function, exceptions like negative price inputs were handled gracefully with appropriate console messages.
+________________________________________
+Task Documentation 15
+________________________________________
+Task 15: Search by Category Functionality and J-Unit Testing
+Student Name(s): Ponabinanth.S
+Date Completed: 29.09.2025
+________________________________________
+1. Objective
+To implement a “search by category” feature and create J-Unit test cases for validation.
+________________________________________
+2. Steps Taken
+• Added Maven dependencies in the XML file.
+• Created J-Unit test cases within the model to validate functionality.
+• Ensured modular structure for easy maintenance.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When running the “Product Validation Test” file, user-friendly success messages were displayed.
+________________________________________
+Task Documentation 16
+________________________________________
+Task 16: Product DAO Implementation and Testing
+Student Name(s): Ponabinanth.S
+Date Completed: 30.09.2025
+________________________________________
+1. Objective
+To implement the Product DAO (Data Access Object) class and write J-Unit test cases for DAO operations.
+________________________________________
+2. Steps Taken
+• Learned about integration testing techniques.
+• Developed DAO Implementation class to manage product data.
+• Wrote unit and integration tests for validation.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When running the “Product DAO Implementation Test” file, all test cases passed successfully.
+________________________________________
+Task Documentation 17
+________________________________________
+Task 17: Mockito Test Class Creation and Testing
+Student Name(s): Ponabinanth.S
+Date Completed: 01.10.2025
+________________________________________
+1. Objective
+To create a Mockito test class and implement mock-based unit testing.
+________________________________________
+2. Steps Taken
+• Learned about the assert function and try-catch testing techniques.
+• Created Mockito-based unit tests for improved testing accuracy.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When running the “Mockito Test” file, all mock-based test cases passed successfully.
+________________________________________
+Task Documentation 18
+________________________________________
+Task 18: Get Product by Range and Unit Testing
+Student Name(s): Ponabinanth.S
+Date Completed: 03.10.2025
+________________________________________
+1. Objective
+To create J-Unit test cases for “search by price range” functionality.
+________________________________________
+2. Steps Taken
+• Modified the existing test class to include price range testing.
+• Validated price-based queries and results.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When executing the “App Test” file, the test cases for product range passed successfully.
+________________________________________
+Task Documentation 19
+________________________________________
+Task 19: Implementing Authentication and Authorization
+Student Name(s): Ponabinanth.S
+Date Completed: 06.10.2025
+________________________________________
+1. Objective
+To create secure user authentication and authorization features.
+________________________________________
+2. Steps Taken
+• Created a user table and model class for managing user data.
+• Developed User DAO and User DAO Implementation classes.
+• Implemented user registration and viewing functionalities.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Mockito tests confirmed the authentication and authorization modules worked correctly.
+________________________________________
+Task Documentation 20
+________________________________________
+Task 20: Secure Environment Variables and GitHub Branching
+Student Name(s): Ponabinanth.S
+Date Completed: 07.10.2025
+________________________________________
+1. Objective
+To secure personal credentials using environment variables and learn about GitHub branching.
+________________________________________
+2. Steps Taken
+• Created environment variables for database link, username, and password.
+• Replaced hardcoded credentials with environment variables.
+• Learned about different GitHub branch workflows.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Credentials are no longer hardcoded, ensuring secure access limited to the coder.
+________________________________________
+Task Documentation 21
+________________________________________
+Task 21: Implementation of Database and Business Logic
+Student Name(s): Ponabinanth.S
+Date Completed: 08.10.2025
+________________________________________
+1. Objective
+To implement both database and business logic layers through a service class.
+________________________________________
+2. Steps Taken
+• Developed a user service class within the service package.
+• Linked the service layer with DAO for smooth data flow.
+• Ensured separation of concerns between logic and data layers.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Test cases written for the User Service class executed successfully.
+________________________________________
+Task Documentation 22
+________________________________________
+Task 22: Role-Based Access Control (RBAC) Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 09.10.2025
+________________________________________
+1. Objective
+To implement Role-Based Access Control for Admin and User functionalities.
+________________________________________
+2. Steps Taken
+• Used switch-case logic to separate admin and user roles.
+• Implemented role-specific features such as product management and purchase.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Users can register and access role-specific functionalities during interaction.
+________________________________________
+Task Documentation 23
+________________________________________
+Task 23: Java Mail API and CSV Helper Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 14.10.2025
+________________________________________
+1. Objective
+To implement Java Mail API for product notifications and create a CSV Helper class.
+________________________________________
+2. Steps Taken
+• Wrote methods for sending emails and generating reports.
+• Configured email service to notify users with valid email addresses.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+When valid email IDs are provided, mails are successfully sent to users.
+________________________________________
+Task Documentation 24
+________________________________________
+Task 24: UI Refactoring and Code Optimization
+Student Name(s): Ponabinanth.S
+Date Completed: 15.10.2025
+________________________________________
+1. Objective
+To refactor and optimize the console-based UI for improved user interaction.
+________________________________________
+2. Steps Taken
+• Rewrote reusable and modular code for login and registration.
+• Added emojis and formatted alignment for a better console experience.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+UI became more interactive and visually appealing with improved layout and design.
+________________________________________
+Task Documentation 25
+________________________________________
+Task 25: OTP Service Class Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 16.10.2025
+________________________________________
+1. Objective
+To develop an OTP service for secure user email authentication.
+________________________________________
+2. Steps Taken
+• Wrote functions to generate and verify OTPs.
+• Linked OTP verification to the “isVerified” column in the users table.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+OTP verification status is updated correctly in the users table.
+________________________________________
+Task Documentation 26
+________________________________________
+Task 26: Stock Alert Service Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 16.10.2025
+________________________________________
+1. Objective
+To create an alert system that notifies users about low stock products.
+________________________________________
+2. Steps Taken
+• Developed a Stock Alert Service to send email alerts when stock drops below thresholds (20 for fast-selling, 10 for others).
+• Integrated alert functionality with the existing email service.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+Integration and Mockvito tests confirmed accurate stock alerts were sent based on threshold levels.
+________________________________________
+Task Documentation 27
+________________________________________
+Task 27: Implement and Verify Test Cases
+Student Name(s): Ponabinanth.S
+Date Completed: 17.10.2025
+________________________________________
+1. Objective
+To implement and verify unit and integration test cases for all key modules of the Inventory Management System to ensure functionality and reliability.
+________________________________________
+2. Steps Taken
+• Created unit test cases for service, controller, and repository layers.
+• Implemented integration tests to validate communication between system components.
+• Executed automated test runs and verified outputs against expected results.
+• Recorded test results and corrected minor logical errors identified during testing.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+All modules successfully passed the implemented test cases. Test reports confirmed 100% pass rate for functional requirements and data consistency.
+________________________________________
+Task Documentation 28
+________________________________________
+Task 28: Mockito Test Cases Implementation
+Student Name(s): Ponabinanth.S
+Date Completed: 23.10.2025
+________________________________________
+1. Objective
+To implement Mockito-based unit tests for simulating and verifying dependencies within the Inventory Management System.
+________________________________________
+2. Steps Taken
+• Integrated Mockito framework into the project for mock testing.
+• Created mock objects for service and repository layers to isolate business logic.
+• Tested ProductDAO, InventoryService, and AlertService without using the actual database.
+• Validated method calls and return values to ensure correct interactions between components.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+All Mockito test cases executed successfully, confirming the accuracy of mocked dependencies. The system functions correctly even in isolated testing scenarios.
+
+
+________________________________________
+Task Documentation 29
+________________________________________
+Task 29: Package and Deploy Full Inventory Management System
+Student Name(s): Ponabinanth.S
+Date Completed: 25.10.2025
+________________________________________
+1. Objective
+To package and deploy the completed Inventory Management System into a runnable and distributable format.
+________________________________________
+2. Steps Taken
+• Compiled and built the project using IntelliJ IDEA with Maven for dependency management.
+• Packaged the project into a .jar file including all dependencies.
+• Configured the database connection properties for deployment.
+• Deployed the packaged application locally and verified smooth execution.
+________________________________________
+3. Challenges Encountered
+• N/A
+________________________________________
+4. Verification
+The packaged .jar file ran successfully on multiple systems, confirming correct build and deployment of the entire Inventory Management System.
+________________________________________
+Task Documentation 30
+________________________________________
+Task 30: Add MIT License to the Project
+Student Name(s): Ponabinanth.S
+Date Completed: 27.10.2025
+________________________________________
+1. Objective
+To include a proper open-source license (MIT License) for legal usage, modification, and distribution of the project.
+________________________________________
+2. Steps Taken
+• Created a LICENSE file in the root directory of the project.
+• Added the official MIT License text including copyright © 2025 Ponabinanth.S.
+• Updated the project documentation and README to mention the applied license.
+________________________________________
+3. Challenges Encountered
+N/A
+________________________________________
+4. Verification
+License file verified and included in the repository. The project is now legally open-source under the MIT License.
+________________________________________
+Task Documentation 31
+________________________________________
+Task 31: Create the PowerPoint Presentation
+Student Name(s): Ponabinanth.S
+Date Completed: 28.10.2025
+________________________________________
+1. Objective
+To design a professional and informative PowerPoint presentation summarizing the Inventory Management System project.
+________________________________________
+2. Steps Taken
+• Designed a 15–20 slide presentation including Introduction, Problem Statement, Objectives, System Architecture, Implementation, Results, and Conclusion.
+• Used visuals, flowcharts, and diagrams for better understanding.
+• Added animations and transitions for a dynamic viewing experience.
+• Exported the presentation as a PDF file for submission.
+________________________________________
+3. Challenges Encountered
+• N/A
+________________________________________
+4. Verification
+Final presentation reviewed for accuracy, clarity, and completeness. It effectively communicates all aspects of the project during demonstration.
+

@@ -1,4 +1,5 @@
 package org.example;
+
 import org.example.dao.userDAOImpl;
 import org.example.model.User;
 import org.example.model.User.UserRole;
@@ -26,6 +27,7 @@ public class App {
         System.out.println("         📦 INVENTORY MANAGEMENT SYSTEM 📈       ");
         System.out.println("╚" + LINE_WIDTH +  "╝");
     }
+
     private static void mainMenu() {
         boolean running = true;
         while (running) {
@@ -40,8 +42,7 @@ public class App {
 
             switch (choice) {
                 case "1":
-                    if (!login()) {
-                    } else {
+                    if (login()) { // Corrected: Check return value
                         managerMenu();
                     }
                     break;
@@ -60,6 +61,7 @@ public class App {
             }
         }
     }
+
     private static boolean login() {
         System.out.println("\n--- Login ---");
         System.out.print("📧 Enter Email : ");
@@ -73,20 +75,13 @@ public class App {
             System.err.println("❌ Invalid credentials. Access denied.");
             return false;
         }
-
-        System.out.println("\n✅ Login successful. Welcome, " + user.getFullName() + " (" + user.getRole() + ")!");
-
-        if (!userAuthDAO.isAuthorized(UserRole.MANAGER)) {
+        if (user.getRole() != UserRole.MANAGER) {
             System.err.println("🚫 Access denied. Only Managers can log in to the main system.");
             userAuthDAO.logout();
             return false;
         }
 
-        if (!user.isVerified()) {
-            handleUnverifiedUser(user);
-            userAuthDAO.logout();
-            return false;
-        }
+        System.out.println("\n✅ Login successful. Welcome, " + user.getFullName() + " (" + user.getRole() + ")!");
 
         return performOtpCheck(user);
     }
@@ -101,6 +96,7 @@ public class App {
             return true;
         } else {
             System.err.println("❌ OTP verification failed. Access denied.");
+            userAuthDAO.logout();
             return false;
         }
     }
@@ -108,17 +104,18 @@ public class App {
     private static void handleUnverifiedUser(User user) {
         System.err.println("\n⚠️ Access Denied: Your email address is unverified.");
 
-        System.out.println("   Please check your email (" + user.getEmail() + ") for a verification link.");
+        System.err.println("   Please check your email (" + user.getEmail() + ") for a verification link.");
 
         System.out.print("   Would you like to resend the verification link? (Y/N): ");
         String choice = sc.nextLine().trim().toUpperCase();
 
         if (choice.equals("Y")) {
-            System.out.println("   📧 Verification link resent. Please check your inbox.");
+            System.err.println("   📧 Verification link resent. Please check your inbox.");
         }
 
-        System.out.println("   You must verify your email before proceeding.");
+        System.err.println("   You must verify your email before proceeding.");
     }
+
     private static void register() {
         System.out.println("\n--- User Registration ---");
         System.out.print("👤 Enter Full Name: ");
@@ -148,6 +145,7 @@ public class App {
             System.err.println("❌ Registration failed. Email may already be in use.");
         }
     }
+
     private static void verifyEmail() {
         System.out.println("\n--- Email Verification (Simulated) ---");
         System.out.print("📧 Enter Email to Verify: ");
@@ -155,13 +153,13 @@ public class App {
         System.out.print("🔑 Enter Verification Token (Simulated: enter 'VERIFY'): ");
         String token = sc.nextLine();
 
-        Optional<User> user = userAuthDAO.getUserByEmail(email);
+        Optional<User> userOpt = userAuthDAO.getUserByEmail(email);
 
-        if (user.isPresent() && token.equalsIgnoreCase("VERIFY")) {
+        if (userOpt.isPresent() && token.equalsIgnoreCase("VERIFY")) {
+            User user = userOpt.get();
+            user.setVerified(true);
 
-            user.get().setVerified(true);
-
-            if (userAuthDAO.updateUser(user.orElse(null))) {
+            if (userAuthDAO.updateUser(user)) {
                 System.out.println("\n✅ Email " + email + " verified successfully! You can now log in.");
             } else {
                 System.err.println("❌ Could not update user status in the DAO.");
@@ -170,6 +168,7 @@ public class App {
             System.err.println("❌ Verification failed. Invalid email or token.");
         }
     }
+
     private static void exit() {
         System.out.println("\n👋 Thank you for using the system. Goodbye!");
         userAuthDAO.logout();
@@ -178,8 +177,14 @@ public class App {
 
 
     private static void managerMenu() {
+        if (userAuthDAO.getCurrentUser() == null || userAuthDAO.getCurrentUser().getRole() != UserRole.MANAGER) {
+            System.err.println("🚫 Access denied. Must be logged in as a Manager.");
+            return;
+        }
+
         System.out.println("\n🚀 Entering Manager System...");
         System.out.println("Current User: " + userAuthDAO.getCurrentUser().getFullName());
-        System.out.println("Returning to Main Menu.");
+
+        userAuthDAO.logout();
     }
 }
